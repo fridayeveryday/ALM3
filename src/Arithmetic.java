@@ -17,59 +17,72 @@ class OperationPriority {
 
 public class Arithmetic {
 
-    public static ArrayList<String> firstLvlPrior = new ArrayList<>(Arrays.asList
-            ("(")
-    );
-    public static ArrayList<String> secondLvlPrior = new ArrayList<>(Arrays.asList
-            ("+", "-")
-    );
-    public static ArrayList<String> thirdLvlPrior = new ArrayList<>(Arrays.asList
-            ("*", "/")
-    );
-    public static ArrayList<String> fourthLvlPrior = new ArrayList<>(Arrays.asList
-            ("^")
-    );
-    public static ArrayList<String> fifthLvlPrior = new ArrayList<>(Arrays.asList
-            ("ln", "sin")
-    );
-    public static ArrayList<String> operations = new ArrayList<>(Arrays.asList
-            ("+", "-", "*", "/", "^", "(", ")", ";", "ln", "sin")
-    );
+    public static OperationPriority firstPriorLvl = new OperationPriority(1, new ArrayList<>(Arrays.asList("(")));
     public static OperationPriority secondPriorLvl = new OperationPriority(2, new ArrayList<>(Arrays.asList("+", "-")));
     public static OperationPriority thirdPriorLvl = new OperationPriority(3, new ArrayList<>(Arrays.asList("*", "/")));
     public static OperationPriority fourthPriorLvl = new OperationPriority(4, new ArrayList<>(Arrays.asList("^")));
     public static OperationPriority fifthPriorLvl = new OperationPriority(5, new ArrayList<>(Arrays.asList("ln", "sin")));
-    public static OperationPriority[] priorities = {secondPriorLvl, thirdPriorLvl, fourthPriorLvl, fifthPriorLvl};
+    public static OperationPriority[] priorities = {firstPriorLvl, secondPriorLvl, thirdPriorLvl, fourthPriorLvl, fifthPriorLvl};
+
+    public static ArrayList<String> operations = new ArrayList<>();
+
 
     public static String anyNumberInRegex = "[-]?\\d+[.,]?\\d*";
     public static String anyLettersInRegex = "[a-zA-Z]+";
 
     public static void main(String[] args) {
+        System.out.println(Double.parseDouble("+2"));
 
-        System.out.println(Double.parseDouble("2"));
-        exprPriorLvlIsTopPrior("ln", "+");
-        System.out.println("qwe".matches(anyNumberInRegex + "|" + anyLettersInRegex));
+        //an initialization of operations
+        for (OperationPriority op : priorities) {
+            operations.addAll(op.operations);
+        }
+        operations.addAll(Arrays.asList(")"));
+
         String path = "C:\\Temp\\ALM3.txt";
         String arithmeticExpression = fetchLineFromFile(path);
+        if (checkIsEmptyLine(arithmeticExpression)) {
+
+        }
+        //todo what if the first number is negative?
+        ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
+        if (!checkIsCorrectExpr(expressionComponents)) {
+            System.out.println("Incorrect format of expression. Please recheck it.");
+        }
+        ArrayList<String> elemInRPN = makeRPN(expressionComponents);
+        System.out.println(elemInRPN);
+        Object res = solveExpressionInRPN(elemInRPN);
+        if (res != null)
+            System.out.println(res);
+
+    }
+
+    public static boolean checkIsCorrectExpr(ArrayList<String> elemsOfExpr) {
+
+        for (String elem : elemsOfExpr) {
+            if (!operations.contains(elem)) {
+                try {
+                    Double.parseDouble(elem);
+                } catch (NumberFormatException exc) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkIsEmptyLine(String arithmeticExpression) {
+        // Does the string exist?
         if (arithmeticExpression != null) {
             arithmeticExpression = arithmeticExpression.replaceAll("\\s+", "");
             System.out.println(arithmeticExpression);
+            return false;
         } else {
             System.out.println("Empty line. Recheck it.");
-            return;
-        }
-        ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
-        ArrayList<String> elemInRPN = makeRPN(expressionComponents);
-        Object res = solveExpressionInRPN(elemInRPN);
-        if(res == null){
-            System.out.println("Division by zero.");
-        }else{
-            System.out.println(res);
-
+            return true;
         }
     }
 
-    double u = 5.7;
 
     public static Number solveExpressionInRPN(ArrayList<String> elemInRPN) {
         Stack<Double> stack4Solving = new Stack<>();
@@ -88,25 +101,51 @@ public class Arithmetic {
                         break;
                 }
                 stack4Solving.push(resOfFun);
+            } else if (secondPriorLvl.operations.contains(elem)) {
+//                double lastValInStack;
+//                if (elem.equals("-")) {
+//                    stack4Solving.push(lastValInStack * -1);
+//                }
+                double lastValInStack = stack4Solving.pop();
+                try {
+
+                    Double second2LastValInStack = stack4Solving.pop();
+                    double res = 0;
+                    switch (elem) {
+                        case "+":
+                            res = second2LastValInStack + lastValInStack;
+                            break;
+                        case "-":
+                            res = second2LastValInStack - lastValInStack;
+                            break;
+                    }
+                    stack4Solving.push(res);
+                } catch (EmptyStackException exc) {
+                    if(elem.equals("-"))
+                        stack4Solving.push(-1*lastValInStack);
+                    else
+                        stack4Solving.push(lastValInStack);
+                }
             } else {
                 double secondNum = stack4Solving.pop();
                 double firstNum = stack4Solving.pop();
                 double res = 0;
                 switch (elem) {
-                    case "+":
-                        res = firstNum + secondNum;
-                        break;
-                    case "-":
-                        res = firstNum - secondNum;
-                        break;
-                    case "/": {
+//                    case "+":
+//                        res = firstNum + secondNum;
+//                        break;
+//                    case "-":
+//                        res = firstNum - secondNum;
+//                        break;
+                    case "/":
                         if (secondNum != 0)
                             res = firstNum / secondNum;
                         else {
+                            System.out.println("Division by zero.");
                             return null;
                         }
                         break;
-                    }
+
                     case "*":
                         res = firstNum * secondNum;
                         break;
@@ -117,7 +156,10 @@ public class Arithmetic {
                 stack4Solving.push(res);
             }
         }
-        return stack4Solving.pop();
+        System.out.println(stack4Solving);
+        double last = stack4Solving.pop();
+        double second2last = stack4Solving.pop();
+        return last + second2last;
 
     }
 
@@ -126,7 +168,7 @@ public class Arithmetic {
         Stack<String> stackOfOper = new Stack<String>();
         for (String elem : partsOfExpression) {
             // if elem is a number than add it to the revPolNot
-            if (elem.matches("[-]?\\d+[.,]?\\d*|[a-zA-Z]+") && !fifthPriorLvl.operations.contains(elem)) {
+            if (elem.matches(anyNumberInRegex + "|" + anyLettersInRegex) && !fifthPriorLvl.operations.contains(elem)) {
                 revPolNot.add(elem);
             } else {
                 if ((stackOfOper.empty() || elem.equals("(")) && !elem.equals(")")) {
@@ -149,7 +191,9 @@ public class Arithmetic {
                     if (exprPriorLvlIsTopPrior(elem, stackOfOper.lastElement())) {
                         stackOfOper.push(elem);
                     } else {
-                        revPolNot.add(stackOfOper.pop());
+                        while (!stackOfOper.isEmpty()) {
+                            revPolNot.add(stackOfOper.pop());
+                        }
                         stackOfOper.push(elem);
                     }
                 }
@@ -197,6 +241,11 @@ public class Arithmetic {
             operandOrFun.setLength(0);
         }
         System.out.println(partsOfExpression);
+        ArrayList<String> preparedExpression = new ArrayList<>();
+        StringBuilder concatTempStr = new StringBuilder();
+//        for (int i = 0; i < partsOfExpression.size(); i++) {
+//            if(partsOfExpression.get(i).equals("-") &&)
+//        }
         return partsOfExpression;
     }
 
