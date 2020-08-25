@@ -33,16 +33,22 @@ public class Arithmetic {
             ("ln", "sin")
     );
     public static ArrayList<String> operations = new ArrayList<>(Arrays.asList
-            ("+", "-", "*", "/", "^", "(", ")", ";")
+            ("+", "-", "*", "/", "^", "(", ")", ";", "ln", "sin")
     );
     public static OperationPriority secondPriorLvl = new OperationPriority(2, new ArrayList<>(Arrays.asList("+", "-")));
     public static OperationPriority thirdPriorLvl = new OperationPriority(3, new ArrayList<>(Arrays.asList("*", "/")));
-    public static OperationPriority fourthPriorLvl = new OperationPriority(3, new ArrayList<>(Arrays.asList("^")));
-    public static OperationPriority[] priorities = {secondPriorLvl, thirdPriorLvl, fourthPriorLvl};
+    public static OperationPriority fourthPriorLvl = new OperationPriority(4, new ArrayList<>(Arrays.asList("^")));
+    public static OperationPriority fifthPriorLvl = new OperationPriority(5, new ArrayList<>(Arrays.asList("ln", "sin")));
+    public static OperationPriority[] priorities = {secondPriorLvl, thirdPriorLvl, fourthPriorLvl, fifthPriorLvl};
+
+    public static String anyNumberInRegex = "[-]?\\d+[.,]?\\d*";
+    public static String anyLettersInRegex = "[a-zA-Z]+";
 
     public static void main(String[] args) {
 
-        System.out.println("qwe".matches("[-]?\\d+[.,]?\\d*|[a-zA-Z]+"));
+        System.out.println(Double.parseDouble("2"));
+        exprPriorLvlIsTopPrior("ln", "+");
+        System.out.println("qwe".matches(anyNumberInRegex + "|" + anyLettersInRegex));
         String path = "C:\\Temp\\ALM3.txt";
         String arithmeticExpression = fetchLineFromFile(path);
         if (arithmeticExpression != null) {
@@ -53,37 +59,96 @@ public class Arithmetic {
             return;
         }
         ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
-        System.out.println(makeRPN(expressionComponents));
+        ArrayList<String> elemInRPN = makeRPN(expressionComponents);
+        Object res = solveExpressionInRPN(elemInRPN);
+        if(res == null){
+            System.out.println("Division by zero.");
+        }else{
+            System.out.println(res);
+
+        }
+    }
+
+    double u = 5.7;
+
+    public static Number solveExpressionInRPN(ArrayList<String> elemInRPN) {
+        Stack<Double> stack4Solving = new Stack<>();
+        for (String elem : elemInRPN) {
+            if (elem.matches(anyNumberInRegex)) {
+                stack4Solving.push(Double.parseDouble(elem));
+            } else if (fifthPriorLvl.operations.contains(elem)) {
+                double lastValInStack = stack4Solving.pop();
+                double resOfFun = 0;
+                switch (elem) {
+                    case "ln":
+                        resOfFun = Math.log(lastValInStack);
+                        break;
+                    case "sin":
+                        resOfFun = Math.sin(lastValInStack);
+                        break;
+                }
+                stack4Solving.push(resOfFun);
+            } else {
+                double secondNum = stack4Solving.pop();
+                double firstNum = stack4Solving.pop();
+                double res = 0;
+                switch (elem) {
+                    case "+":
+                        res = firstNum + secondNum;
+                        break;
+                    case "-":
+                        res = firstNum - secondNum;
+                        break;
+                    case "/": {
+                        if (secondNum != 0)
+                            res = firstNum / secondNum;
+                        else {
+                            return null;
+                        }
+                        break;
+                    }
+                    case "*":
+                        res = firstNum * secondNum;
+                        break;
+                    case "^":
+                        res = Math.pow(firstNum, secondNum);
+                        break;
+                }
+                stack4Solving.push(res);
+            }
+        }
+        return stack4Solving.pop();
 
     }
 
-    public static String makeRPN(ArrayList<String> partsOfExpression) {
-//        StringBuilder revPolNot = new StringBuilder("");
-        ArrayList<String> revPolNot= new ArrayList<>();
+    public static ArrayList<String> makeRPN(ArrayList<String> partsOfExpression) {
+        ArrayList<String> revPolNot = new ArrayList<>();
         Stack<String> stackOfOper = new Stack<String>();
         for (String elem : partsOfExpression) {
             // if elem is a number than add it to the revPolNot
-            if (elem.matches("[-]?\\d+[.,]?\\d*|[a-zA-Z]+")) {
+            if (elem.matches("[-]?\\d+[.,]?\\d*|[a-zA-Z]+") && !fifthPriorLvl.operations.contains(elem)) {
                 revPolNot.add(elem);
             } else {
-                if (stackOfOper.empty() || elem.equals("(")) {
+                if ((stackOfOper.empty() || elem.equals("(")) && !elem.equals(")")) {
                     stackOfOper.push(elem);
-                    continue;
-                }
-                else if (elem.equals(")")){
-                    while(true){
-                        revPolNot.add(stackOfOper.pop());
-                        if (stackOfOper.lastElement().equals("(")){
+
+                } else if (elem.equals(")")) {
+                    while (true) {
+                        if (stackOfOper.lastElement().equals("(")) {
                             stackOfOper.pop();
+                            if (!stackOfOper.isEmpty() && (fifthPriorLvl.operations.contains(stackOfOper.lastElement()))) {
+                                revPolNot.add(stackOfOper.pop());
+                            }
                             break;
                         }
+                        revPolNot.add(stackOfOper.pop());
+
 
                     }
-                }
-                else {
-                    if(exprPriorLvlIsTopPrior(elem, stackOfOper.lastElement())){
+                } else {
+                    if (exprPriorLvlIsTopPrior(elem, stackOfOper.lastElement())) {
                         stackOfOper.push(elem);
-                    }else{
+                    } else {
                         revPolNot.add(stackOfOper.pop());
                         stackOfOper.push(elem);
                     }
@@ -91,10 +156,10 @@ public class Arithmetic {
             }
         }
         // make the stack empty
-        while (!stackOfOper.isEmpty()){
+        while (!stackOfOper.isEmpty()) {
             revPolNot.add(stackOfOper.pop());
         }
-        return revPolNot.toString();
+        return revPolNot;
     }
 
     public static boolean exprPriorLvlIsTopPrior(String expressionOperation, String stackOperation) {
