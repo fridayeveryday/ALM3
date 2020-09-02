@@ -1,4 +1,3 @@
-import sun.plugin.javascript.navig.Array;
 
 import java.awt.List;
 import java.io.File;
@@ -31,7 +30,8 @@ public class Arithmetic {
     public static String anyLettersInRegex = "[a-zA-Z]+";
 
     public static void main(String[] args) {
-        System.out.println(Double.parseDouble("+2"));
+        System.out.println(-9.0 / -(2 * 4)
+        );
 
         //an initialization of operations
         for (OperationPriority op : priorities) {
@@ -42,7 +42,10 @@ public class Arithmetic {
         String path = "C:\\Temp\\ALM3.txt";
         String arithmeticExpression = fetchLineFromFile(path);
         if (checkIsEmptyLine(arithmeticExpression)) {
-
+            return;
+        } else {
+            arithmeticExpression = arithmeticExpression.replaceAll("\\s+", "");
+            System.out.println(arithmeticExpression);
         }
         //todo what if the first number is negative?
         ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
@@ -74,8 +77,6 @@ public class Arithmetic {
     public static boolean checkIsEmptyLine(String arithmeticExpression) {
         // Does the string exist?
         if (arithmeticExpression != null) {
-            arithmeticExpression = arithmeticExpression.replaceAll("\\s+", "");
-            System.out.println(arithmeticExpression);
             return false;
         } else {
             System.out.println("Empty line. Recheck it.");
@@ -101,42 +102,17 @@ public class Arithmetic {
                         break;
                 }
                 stack4Solving.push(resOfFun);
-            } else if (secondPriorLvl.operations.contains(elem)) {
-//                double lastValInStack;
-//                if (elem.equals("-")) {
-//                    stack4Solving.push(lastValInStack * -1);
-//                }
-                double lastValInStack = stack4Solving.pop();
-                try {
-
-                    Double second2LastValInStack = stack4Solving.pop();
-                    double res = 0;
-                    switch (elem) {
-                        case "+":
-                            res = second2LastValInStack + lastValInStack;
-                            break;
-                        case "-":
-                            res = second2LastValInStack - lastValInStack;
-                            break;
-                    }
-                    stack4Solving.push(res);
-                } catch (EmptyStackException exc) {
-                    if(elem.equals("-"))
-                        stack4Solving.push(-1*lastValInStack);
-                    else
-                        stack4Solving.push(lastValInStack);
-                }
             } else {
                 double secondNum = stack4Solving.pop();
                 double firstNum = stack4Solving.pop();
                 double res = 0;
                 switch (elem) {
-//                    case "+":
-//                        res = firstNum + secondNum;
-//                        break;
-//                    case "-":
-//                        res = firstNum - secondNum;
-//                        break;
+                    case "+":
+                        res = firstNum + secondNum;
+                        break;
+                    case "-":
+                        res = firstNum - secondNum;
+                        break;
                     case "/":
                         if (secondNum != 0)
                             res = firstNum / secondNum;
@@ -156,10 +132,11 @@ public class Arithmetic {
                 stack4Solving.push(res);
             }
         }
-        System.out.println(stack4Solving);
-        double last = stack4Solving.pop();
-        double second2last = stack4Solving.pop();
-        return last + second2last;
+//        System.out.println(stack4Solving);
+//        double last = stack4Solving.pop();
+//        double second2last = stack4Solving.pop();
+//        return last + second2last;
+        return stack4Solving.pop();
 
     }
 
@@ -221,18 +198,147 @@ public class Arithmetic {
     }
 
     public static ArrayList<String> parseExpression(String expression) {
+        String positiveNumInRegex = "[+]?\\d+[.,]?\\d*";
+        ArrayList<String> signsBeforeNegSign = new ArrayList<>(Arrays.asList("+", "(", "/", "*", "^"));
+
         char[] expressionByChar = expression.toCharArray();
         ArrayList<String> partsOfExpression = new ArrayList<>();
         StringBuilder operandOrFun = new StringBuilder("");
-        for (char s : expressionByChar) {
+        ArrayList<String> positNegatSign = new ArrayList<>(secondPriorLvl.operations);
+//        int i = 0;
+//        while (i < expressionByChar.length) {
+//            operandOrFun.append(expressionByChar[i]);
+//            if (operations.contains(operandOrFun.toString())) {
+//
+//                if (operandOrFun.length() != 0) {
+//                    partsOfExpression.add(operandOrFun.toString());
+//                    operandOrFun.setLength(0);
+//                }
+//                i++;
+//            } else {
+//
+//            }
+//        }
+//        for (int i = 0; i < expressionByChar.length; ) {
+//            char oneChar = expressionByChar[i];
+//            // if s is an operation
+//            if (operations.contains(Character.toString(oneChar))) {
+//                operandOrFun.append(expressionByChar[i]);
+//                i++;
+//                oneChar = expressionByChar[i];
+//                do {
+//                    operandOrFun.append(expressionByChar[i]);
+//                    i++;
+////                    oneChar = expressionByChar[i];
+//                }
+//                while ((i < expressionByChar.length) && !operations.contains(Character.toString(expressionByChar[i])));
+//                if (operandOrFun.length() != 0) {
+//                    if (operandOrFun.toString().matches(positiveNumInRegex)) {
+//                        operandOrFun.deleteCharAt(0);
+//                    }
+//                    partsOfExpression.add(operandOrFun.toString());
+//                    if (i < expressionByChar.length) partsOfExpression.add("+");
+//                    operandOrFun.setLength(0);
+//                }
+////                partsOfExpression.add(Character.toString(s));
+//            } else {
+//                operandOrFun.append(oneChar);
+//            }
+//        }
+
+
+//        int i = 0;
+//        char oneChar = expressionByChar[i];
+//        do {
+//            oneChar = expressionByChar[i];
+//            operandOrFun.append(oneChar);
+//
+//            i++;
+//        }while (i<expressionByChar.length);
+//        for (char s : expressionByChar) {
+//            if (s == '+' || s == '-'){
+//                operandOrFun.append(s);
+//                continue;
+//            }
+//            // if s is an operation
+//            if (operations.contains(Character.toString(s))) {
+//                partsOfExpression.add(operandOrFun.toString());
+//                operandOrFun.setLength(0);
+//            } else {
+//                operandOrFun.append(s);
+//            }
+//        }
+//        if (operandOrFun.length() != 0) {
+//            partsOfExpression.add(operandOrFun.toString());
+//            operandOrFun.setLength(0);
+//        } else {
+//            System.out.println("Incorrect line.");
+//        }
+//        System.out.println(partsOfExpression);
+//        ArrayList<String> preparedExpression = new ArrayList<>();
+//        StringBuilder concatTempStr = new StringBuilder();
+        // number of braces what is needed to add
+        int numOfBracesAfterMinus = 0;
+        // show necessity to add braces after an opening brace was added
+        boolean necessity2AddBraces = false;
+        char s;
+        Stack<String> stackOfBracesAndMinuses = new Stack<String>();
+
+        for (int i = 0; i < expressionByChar.length; i++) {
+            s = expressionByChar[i];
+
             // if s is an operation
             if (operations.contains(Character.toString(s))) {
+
+                if (s == '-' && (expressionByChar[i + 1] == '('
+                        || expressionByChar[i + 1] == 'l'
+                        || expressionByChar[i + 1] == 's'
+                        || expressionByChar[i + 1] == 'c')) {
+//                    numOfBracesAfterMinus++;
+                    stackOfBracesAndMinuses.push(Character.toString(s));
+                    stackOfBracesAndMinuses.push(Character.toString(expressionByChar[i + 1]));
+                } else if (s == ')') {
+                    stackOfBracesAndMinuses.pop();
+                    String lastElem = "";
+                    if (!stackOfBracesAndMinuses.empty())
+                        lastElem = stackOfBracesAndMinuses.pop();
+                    if (lastElem.equals("-")) {
+                        // if operandOrFun is a string like "log", "sin" or not one digit number
+                        if (operandOrFun.length() != 0) {
+                            partsOfExpression.add(operandOrFun.toString());
+                            operandOrFun.setLength(0);
+                        }
+                        if (numOfBracesAfterMinus > 0) {
+                            numOfBracesAfterMinus--;
+                            partsOfExpression.add(")");
+                        }
+                    }
+                }
+                // if operandOrFun is a like "log", "sin"
                 if (operandOrFun.length() != 0) {
                     partsOfExpression.add(operandOrFun.toString());
                     operandOrFun.setLength(0);
                 }
-                partsOfExpression.add(Character.toString(s));
+                if (s == '-') {
+                    String lastELemInPOfExp = "";
+                    if (!partsOfExpression.isEmpty())
+                        lastELemInPOfExp = partsOfExpression.get(partsOfExpression.size() - 1);
+                    if (lastELemInPOfExp.matches(anyNumberInRegex) || lastELemInPOfExp.equals(")")) {
+                        partsOfExpression.add("+");
+                    }
+                    partsOfExpression.add("(");
+                    numOfBracesAfterMinus++;
+                    partsOfExpression.add("-1");
+                    partsOfExpression.add("*");
+                } else {
+                    if (numOfBracesAfterMinus > 0 && s!='(') {
+                        numOfBracesAfterMinus--;
+                        partsOfExpression.add(")");
+                    }
+                    partsOfExpression.add(Character.toString(s));
+                }
             } else {
+
                 operandOrFun.append(s);
             }
         }
@@ -240,12 +346,39 @@ public class Arithmetic {
             partsOfExpression.add(operandOrFun.toString());
             operandOrFun.setLength(0);
         }
+
+        while (numOfBracesAfterMinus > 0) {
+            partsOfExpression.add(")");
+            numOfBracesAfterMinus--;
+        }
         System.out.println(partsOfExpression);
         ArrayList<String> preparedExpression = new ArrayList<>();
         StringBuilder concatTempStr = new StringBuilder();
 //        for (int i = 0; i < partsOfExpression.size(); i++) {
-//            if(partsOfExpression.get(i).equals("-") &&)
+//            if (
+//                    (
+//                            (
+//                                    // if negative num is at begin???
+//                                    signsBeforeNegSign.contains(partsOfExpression.get(i))
+//                                            || i == 0
+//                            )
+//                                    && partsOfExpression.get(i + 1).equals("-")
+//                                    && partsOfExpression.get(i + 2).matches(anyNumberInRegex)
+//                    )
+//                            ||
+//
+//            ) {
+//                preparedExpression.add(partsOfExpression.get(i));
+//                concatTempStr.append(partsOfExpression.get(i + 1));
+//                concatTempStr.append(partsOfExpression.get(i + 2));
+//                preparedExpression.add(concatTempStr.toString());
+//                i += 2;
+//                concatTempStr.setLength(0);
+//            } else {
+//                preparedExpression.add(partsOfExpression.get(i));
+//            }
 //        }
+//        System.out.println(preparedExpression);
         return partsOfExpression;
     }
 
@@ -262,3 +395,4 @@ public class Arithmetic {
         return string;
     }
 }
+
