@@ -1,4 +1,3 @@
-
 import java.awt.List;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +28,9 @@ public class Arithmetic {
     public static String anyLettersInRegex = "[a-zA-Z]+";
 
     public static void main(String[] args) {
+        System.out.printf("|State | X %-8s| Y %-6s|", " "," ");
+        System.out.println("\n______________________________");
+        printMealy("S0","","");
         //an initialization of operations
         for (OperationPriority op : priorities) {
             operations.addAll(op.operations);
@@ -37,24 +39,40 @@ public class Arithmetic {
 
         String path = "C:\\Temp\\ALM3.txt";
         String arithmeticExpression = fetchLineFromFile(path);
+        printMealy("S1", "1", "Y1");
         if (checkIsEmptyLine(arithmeticExpression)) {
+            printMealy("S0", "X1", "Y3");
             return;
         } else {
             arithmeticExpression = arithmeticExpression.replaceAll("\\s+", "");
-            System.out.println(arithmeticExpression);
+//            System.out.println(arithmeticExpression);
+
         }
 
         ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
-        System.out.println(expressionComponents);
+        printMealy("S2", "!X1", "Y2");
+//        System.out.println(expressionComponents);
         if (!checkIsCorrectExpr(expressionComponents)) {
             System.out.println("Incorrect format of expression. Please recheck it.");
+            printMealy("S0", "X2", "Y5");
+            return;
         }
         ArrayList<String> elemInRPN = makeRPN(expressionComponents);
-        System.out.println(elemInRPN);
-        Object res = solveExpressionInRPN(elemInRPN);
-        if (res != null)
+//        System.out.println(elemInRPN);
+        var res = solveExpressionInRPN(elemInRPN);
+        printMealy("S3","!X2", "Y4");
+        if (res != null){
             System.out.println(res);
+            printMealy("S0","X3", "Y6");
+        }else {
+            printMealy("S0","!X3", "Y7");
+        }
 
+    }
+
+    public static void printMealy(String state,  String X, String Y){
+        System.out.printf("|%-6s| X:%-8s| Y:%-6s|", state, X, Y);
+        System.out.println();
     }
 
     public static boolean checkIsCorrectExpr(ArrayList<String> elemsOfExpr) {
@@ -84,7 +102,7 @@ public class Arithmetic {
 
     public static boolean checkIsEmptyLine(String arithmeticExpression) {
         // Does the string exist?
-        if (arithmeticExpression != null) {
+        if (arithmeticExpression != null ) {
             return false;
         } else {
             System.out.println("Empty line. Recheck it.");
@@ -311,4 +329,3 @@ public class Arithmetic {
         return string;
     }
 }
-
