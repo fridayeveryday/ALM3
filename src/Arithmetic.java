@@ -289,6 +289,15 @@ public class Arithmetic {
 
             // if s is an operation
             if (operations.contains(Character.toString(s))) {
+                if (operandOrFun.length() != 0) {
+                    partsOfExpression.add(operandOrFun.toString());
+                    operandOrFun.setLength(0);
+
+                    if (numOfBracesAfterMinus > 0 && s!='(') {
+                        numOfBracesAfterMinus--;
+                        partsOfExpression.add(")");
+                    }
+                }
 
                 if (s == '-' && (expressionByChar[i + 1] == '('
                         || expressionByChar[i + 1] == 'l'
@@ -297,29 +306,6 @@ public class Arithmetic {
 //                    numOfBracesAfterMinus++;
                     stackOfBracesAndMinuses.push(Character.toString(s));
                     stackOfBracesAndMinuses.push(Character.toString(expressionByChar[i + 1]));
-                } else if (s == ')') {
-                    stackOfBracesAndMinuses.pop();
-                    String lastElem = "";
-                    if (!stackOfBracesAndMinuses.empty())
-                        lastElem = stackOfBracesAndMinuses.pop();
-                    if (lastElem.equals("-")) {
-                        // if operandOrFun is a string like "log", "sin" or not one digit number
-                        if (operandOrFun.length() != 0) {
-                            partsOfExpression.add(operandOrFun.toString());
-                            operandOrFun.setLength(0);
-                        }
-                        if (numOfBracesAfterMinus > 0) {
-                            numOfBracesAfterMinus--;
-                            partsOfExpression.add(")");
-                        }
-                    }
-                }
-                // if operandOrFun is a like "log", "sin"
-                if (operandOrFun.length() != 0) {
-                    partsOfExpression.add(operandOrFun.toString());
-                    operandOrFun.setLength(0);
-                }
-                if (s == '-') {
                     String lastELemInPOfExp = "";
                     if (!partsOfExpression.isEmpty())
                         lastELemInPOfExp = partsOfExpression.get(partsOfExpression.size() - 1);
@@ -327,14 +313,48 @@ public class Arithmetic {
                         partsOfExpression.add("+");
                     }
                     partsOfExpression.add("(");
+                    partsOfExpression.add("-1");
+                    partsOfExpression.add("*");
+                    continue;
+                } else if (s == ')') {
+                    if (!stackOfBracesAndMinuses.empty())
+                        stackOfBracesAndMinuses.pop();
+                    String lastElem = "";
+                    if (!stackOfBracesAndMinuses.empty())
+                        lastElem = stackOfBracesAndMinuses.pop();
+                    if (lastElem.equals("-")) {
+                        // if operandOrFun is a string like "ln", "sin" or not one digit number
+                        if (operandOrFun.length() != 0) {
+                            partsOfExpression.add(operandOrFun.toString());
+                            operandOrFun.setLength(0);
+
+                            if (numOfBracesAfterMinus > 0 && s!='(') {
+                                numOfBracesAfterMinus--;
+                                partsOfExpression.add(")");
+                            }
+                        }
+//                        if (numOfBracesAfterMinus > 0) {
+//                            numOfBracesAfterMinus--;
+                            partsOfExpression.add(")");
+//                        }
+                    }
+                }
+                // if operandOrFun is a like "log", "sin"
+
+
+                if (s == '-') {
+                    String lastELemInPOfExp = "";
+                    if (!partsOfExpression.isEmpty())
+                        lastELemInPOfExp = partsOfExpression.get(partsOfExpression.size() - 1);
+                    if (lastELemInPOfExp.matches(anyNumberInRegex) || lastELemInPOfExp.equals(")")) {
+                        partsOfExpression.add("+");
+                    }
                     numOfBracesAfterMinus++;
+                    partsOfExpression.add("(");
                     partsOfExpression.add("-1");
                     partsOfExpression.add("*");
                 } else {
-                    if (numOfBracesAfterMinus > 0 && s!='(') {
-                        numOfBracesAfterMinus--;
-                        partsOfExpression.add(")");
-                    }
+
                     partsOfExpression.add(Character.toString(s));
                 }
             } else {
