@@ -28,9 +28,7 @@ public class Arithmetic {
     public static String anyLettersInRegex = "[a-zA-Z]+";
 
     public static void main(String[] args) {
-        System.out.printf("|State | X %-8s| Y %-6s|", " "," ");
-        System.out.println("\n______________________________");
-        printMealy("S0","","");
+
         //an initialization of operations
         for (OperationPriority op : priorities) {
             operations.addAll(op.operations);
@@ -39,9 +37,7 @@ public class Arithmetic {
 
         String path = "C:\\Temp\\ALM3.txt";
         String arithmeticExpression = fetchLineFromFile(path);
-        printMealy("S1", "1", "Y1");
         if (checkIsEmptyLine(arithmeticExpression)) {
-            printMealy("S0", "X1", "Y3");
             return;
         } else {
             arithmeticExpression = arithmeticExpression.replaceAll("\\s+", "");
@@ -50,28 +46,24 @@ public class Arithmetic {
         }
 
         ArrayList<String> expressionComponents = parseExpression(arithmeticExpression);
-        printMealy("S2", "!X1", "Y2");
 //        System.out.println(expressionComponents);
         if (!checkIsCorrectExpr(expressionComponents)) {
             System.out.println("Incorrect format of expression. Please recheck it.");
-            printMealy("S0", "X2", "Y5");
             return;
         }
         ArrayList<String> elemInRPN = makeRPN(expressionComponents);
 //        System.out.println(elemInRPN);
         var res = solveExpressionInRPN(elemInRPN);
-        printMealy("S3","!X2", "Y4");
         if (res != null){
+            System.out.print("Result: ");
             System.out.println(res);
-            printMealy("S0","X3", "Y6");
         }else {
-            printMealy("S0","!X3", "Y7");
         }
 
     }
 
     public static void printMealy(String state,  String X, String Y){
-        System.out.printf("|%-6s| X:%-8s| Y:%-6s|", state, X, Y);
+        System.out.printf("|%-6s| X:%-10s| Y:%-6s|", state, X, Y);
         System.out.println();
     }
 
@@ -85,18 +77,41 @@ public class Arithmetic {
                 }
             }
         }
+        System.out.println("States, Xs, Ys for checking expression:");
+        System.out.printf("|State | X %-10s| Y %-6s|", " "," ");
+        System.out.println("\n______________________________");
+        printMealy("S0","","");
         int numOfBraces = 0;
-        for (String elem : elemsOfExpr) {
-            if (elem.equals("("))
+        int i = 0;
+        printMealy("S1", "1", "Y1");
+        for (i = 0; i < elemsOfExpr.size();) {
+            String elem = elemsOfExpr.get(i);
+            printMealy("S2","X1","Y2");
+            if (elem.equals("(")){
+                printMealy("S3","X2","Y3");
                 numOfBraces++;
-            else if(elem.equals(")"))
+                i++;
+                continue;
+            }
+            else if(elem.equals(")")){
                 numOfBraces--;
+                printMealy("S3","!X2X3","Y4");
+                i++;
+                continue;
+            }
+            printMealy("S3","!X2!X3","-");
+            i++;
+            printMealy("S1","1","Y5");
+
         }
         if (numOfBraces != 0){
             System.out.println("The number of opening and closing curly brackets does not match");
+            printMealy("S0", "X4", "Y6");
             return false;
         }
-
+        printMealy("S0", "!X4", "Y7");
+        System.out.println("The end of checking.");
+        System.out.println("\n______________________________");
         return true;
     }
 
@@ -111,11 +126,21 @@ public class Arithmetic {
     }
 
     public static Number solveExpressionInRPN(ArrayList<String> elemInRPN) {
+        System.out.println("States, Xs, Ys for solving expression:");
+        System.out.printf("|State | X %-10s| Y %-6s|", " "," ");
+        System.out.println("\n______________________________");
+        printMealy("S0","","");
         Stack<Double> stack4Solving = new Stack<>();
-        for (String elem : elemInRPN) {
+        printMealy("S0", "1","Y1");
+        int i = 0;
+        for (i = 0; i < elemInRPN.size();) {
+            String elem = elemInRPN.get(i);
+            printMealy("S2", "X1","Y2");
             if (elem.matches(anyNumberInRegex)) {
                 stack4Solving.push(Double.parseDouble(elem));
-            } else if (fifthPriorLvl.operations.contains(elem)) {
+                printMealy("S5","X2","Y3");
+            }
+            else if (fifthPriorLvl.operations.contains(elem)) {
                 double lastValInStack = stack4Solving.pop();
                 double resOfFun = 0;
                 switch (elem) {
@@ -132,36 +157,51 @@ public class Arithmetic {
                         break;
                 }
                 stack4Solving.push(resOfFun);
-            } else {
+            }
+            else {
                 double secondNum = stack4Solving.pop();
                 double firstNum = stack4Solving.pop();
                 double res = 0;
+                printMealy("S3","!X2","Y4");
                 switch (elem) {
                     case "+":
                         res = firstNum + secondNum;
+                        printMealy("S4","X3","Y5");
                         break;
                     case "-":
                         res = firstNum - secondNum;
+                        printMealy("S4","!X3X4","Y6");
                         break;
                     case "/":
-                        if (secondNum != 0)
+                        if (secondNum != 0){
                             res = firstNum / secondNum;
+                            printMealy("S4","!X3!X4X5X6","Y9");
+                        }
                         else {
                             System.out.println("Division by zero.");
+                            printMealy("S0","!X3!X4X5!X6","Y7");
                             return null;
                         }
                         break;
 
                     case "*":
                         res = firstNum * secondNum;
+                        printMealy("S4","!X3!X4!X5","Y8");
                         break;
                     case "^":
                         res = Math.pow(firstNum, secondNum);
                         break;
                 }
                 stack4Solving.push(res);
+                printMealy("S5","1","Y10");
+
             }
+            i++;
+            printMealy("S1","1","Y11");
         }
+        printMealy("S0","!X1","Y12");
+        System.out.println("The end of solving.");
+        System.out.println("\n______________________________");
         return stack4Solving.pop();
     }
 
